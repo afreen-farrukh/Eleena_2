@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+
+    environment {
+        // Define environment variables here if needed
+    }
+
+    tools {
+        // Ensure Maven and JDK tools are available
+        maven 'Maven 3.8.1'  // Change to your Maven version in Jenkins
+        jdk 'JDK 11'        // Change to your JDK version in Jenkins
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from your version control
+                git url: 'https://github.com/eleenaedward/E-commerce-springBoot.git', branch: 'main' 
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Clean and build the project using Maven
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                // Run tests using Maven
+                sh 'mvn test'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                // Package the application into a WAR file
+                sh 'mvn package'
+            }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+                // Archive the generated WAR file as a build artifact
+                archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // Deploy to a server (example using scp, you can replace with your deployment strategy)
+                sh 'scp target/*.war user@your-server:/path/to/deploy'
+            }
+        }
+    }
+
+    post {
+        success {
+            // Notify success (e.g., Slack, Email, etc.)
+            echo 'Build and deployment succeeded!'
+        }
+        failure {
+            // Notify failure
+            echo 'Build or deployment failed!'
+        }
+    }
+}
